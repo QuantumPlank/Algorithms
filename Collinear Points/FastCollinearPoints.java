@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdDraw;
@@ -26,20 +25,25 @@ public class FastCollinearPoints {
         Point[] sortedPoints = Arrays.copyOf(points, numberOfPoints);
         ArrayList<LineSegment> lineSegmentList = new ArrayList<LineSegment>();
         for (int startingPointIndex = 0; startingPointIndex < numberOfPoints; startingPointIndex++) {
+            Arrays.sort(sortedPoints);
             Arrays.sort(sortedPoints, points[startingPointIndex].slopeOrder());
             int candidateIndex = 0;
             while (candidateIndex < numberOfPoints) {
                 double candidateSlope = points[startingPointIndex].slopeTo(sortedPoints[candidateIndex]);
                 int collinearPoints = 1;
-                int farthestPoint = candidateIndex;
+                int finalPoint = candidateIndex;
                 for (int searcher = candidateIndex; searcher < numberOfPoints; searcher++) {
-                    if (candidateSlope == points[startingPointIndex].slopeTo(sortedPoints[searcher])) {
-                        collinearPoints++;
-                        int comparison = sortedPoints[farthestPoint].compareTo(sortedPoints[searcher]);
-                        if (comparison <= 0) {
-                            farthestPoint = searcher;
+                    if (points[startingPointIndex].slopeTo(sortedPoints[searcher]) == candidateSlope) {
+                        if (searcher == numberOfPoints - 1) {
+                            candidateIndex = numberOfPoints;
                         }
-                        else if (comparison > 0) {
+                        if (points[startingPointIndex].compareTo(sortedPoints[searcher]) > 0) {
+                            collinearPoints++;
+                            if (sortedPoints[searcher].compareTo(sortedPoints[finalPoint]) < 0) {
+                                finalPoint = searcher;
+                            }
+                        }
+                        else {
                             collinearPoints = 0;
                             break;
                         }
@@ -50,7 +54,7 @@ public class FastCollinearPoints {
                     }
                 }
                 if (collinearPoints > 3) {
-                    LineSegment newSegment = new LineSegment(points[startingPointIndex], sortedPoints[farthestPoint]);
+                    LineSegment newSegment = new LineSegment(points[startingPointIndex], sortedPoints[finalPoint]);
                     lineSegmentList.add(newSegment);
                 }
                 candidateIndex++;
