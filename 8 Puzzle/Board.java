@@ -144,7 +144,6 @@ public class Board {
     }
 
     public static void main(String[] args) {
-        // read the n points from a file
         In in;
         int n;
         
