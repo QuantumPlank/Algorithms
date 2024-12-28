@@ -1,0 +1,9 @@
+{
+    "java.project.sourcePaths": [
+        "Colliding Disks",
+        "Hello, World"
+    ],
+    "java.project.referencedLibraries": [
+        "/usr/local/lift/lib/algs4.jar"
+    ]
+}
