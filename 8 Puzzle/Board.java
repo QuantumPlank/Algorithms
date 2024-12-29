@@ -6,11 +6,40 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class Board {
     private int[][] board;
+    private int[][] twinBoard;
     private int boardSize;
+    private int hammingDistance;
+    private int manhattanDistance;
 
     public Board(int[][] tiles) {
         board = tiles;
         boardSize = tiles.length;
+        // Obtain Distances
+        hammingDistance =  0;
+        manhattanDistance = 0;
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                if (board[i][j] != 0 && board[i][j] != (i * boardSize + j + 1)) {
+                    hammingDistance++;
+                }
+                if (board[i][j] != 0) {
+                    int goalY = (board[i][j] - 1) / boardSize;
+                    int goalX = (board[i][j] - 1) % boardSize;
+                    manhattanDistance += Math.abs(goalX - j) + Math.abs(goalY - i);
+                }
+            }
+        }
+        // Create the twin board
+        twinBoard = copyBoard(board);
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize - 1; j++) {
+                if (twinBoard[i][j] != 0 && twinBoard[i][j+1] != 0) {
+                    int temp = twinBoard[i][j+1];
+                    twinBoard[i][j+1] = twinBoard[i][j];
+                    twinBoard[i][j] = temp;
+                }
+            }
+        }
     }
 
     public String toString() {
@@ -30,37 +59,15 @@ public class Board {
     }
 
     public int hamming() {
-        int counter = 0;
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                if (board[i][j] != 0 && board[i][j] != (i * boardSize + j + 1)) {
-                    counter++;
-                }
-            }
-        }
-        return counter;
+        return hammingDistance;
     }
 
     public int manhattan() {
-        int distance = 0;
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize; j++) {
-                if (board[i][j] == 0) {
-                    continue;
-                }
-                int goalY = (board[i][j] - 1) / boardSize;
-                int goalX = (board[i][j] - 1) % boardSize;
-                distance += Math.abs(goalX - j) + Math.abs(goalY - i);
-            }
-        }
-        return distance;
+        return manhattanDistance;
     }
 
     public boolean isGoal() {
-        if (hamming() == 0) {
-            return true;
-        }
-        return false;
+        return hamming() == 0;
     }
 
     public boolean equals(Object y) {
@@ -74,7 +81,6 @@ public class Board {
         if (otherBoard.dimension() != otherBoard.dimension()) {
             return false;
         }
-        
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize; j++) {
                 if (board[i][j] != otherBoard.board[i][j]) {
@@ -90,57 +96,60 @@ public class Board {
         int zeroX = 0;
         int zeroY = 0;
         for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize - 1; j++) {
-                if (twinBoard[i][j] == 0) {
+            for (int j = 0; j < boardSize; j++) {
+                if (board[i][j] == 0) {
                     zeroX = j;
                     zeroY = i;
                 }
             }
         }
         if (isInBounds(zeroX + 1, zeroY)) {
-            int[][] neighborBoard = Arrays.copyOf(board, boardSize);
-            neighborBoard[zeroY][zeroX] = neighborBoard[zeroY][zeroX + 1];
-            neighborBoard[zeroY][zeroX + 1] = 0;
+            int[][] neighborBoard = copyBoard(board);
+            exchange(neighborBoard, zeroX, zeroY, zeroX+1, zeroY);
             neighborsStack.add(new Board(neighborBoard));
         }
         if (isInBounds(zeroX - 1, zeroY)) {
-            int[][] neighborBoard = Arrays.copyOf(board, boardSize);
-            neighborBoard[zeroY][zeroX] = neighborBoard[zeroY][zeroX - 1];
-            neighborBoard[zeroY][zeroX - 1] = 0;
+            int[][] neighborBoard = copyBoard(board);
+            exchange(neighborBoard, zeroX, zeroY, zeroX-1, zeroY);
             neighborsStack.add(new Board(neighborBoard));
         }
         if (isInBounds(zeroX, zeroY + 1)) {
-            int[][] neighborBoard = Arrays.copyOf(board, boardSize);
-            neighborBoard[zeroY][zeroX] = neighborBoard[zeroY + 1][zeroX];
-            neighborBoard[zeroY + 1][zeroX] = 0;
+            int[][] neighborBoard = copyBoard(board);
+            exchange(neighborBoard, zeroX, zeroY, zeroX, zeroY+1);
             neighborsStack.add(new Board(neighborBoard));
         }
         if (isInBounds(zeroX, zeroY - 1)) {
-            int[][] neighborBoard = Arrays.copyOf(board, boardSize);
-            neighborBoard[zeroY][zeroX] = neighborBoard[zeroY - 1][zeroX];
-            neighborBoard[zeroY - 1][zeroX] = 0;
+            int[][] neighborBoard = copyBoard(board);
+            exchange(neighborBoard, zeroX, zeroY, zeroX, zeroY-1);
             neighborsStack.add(new Board(neighborBoard));
         }
         return  neighborsStack;
     }
 
-    private boolean isInBounds(int x, int y) {
-        if (x >= 0 && x < boardSize && y >= 0 && y < boardSize) {
-            return true;
+    private int[][] copyBoard(int[][] board) {
+        int[][] copy = new int[boardSize][boardSize];
+        for (int i = 0; i < boardSize; i++) {
+            for (int j = 0; j < boardSize; j++) {
+                copy[i][j] = board[i][j];
+            }
         }
-        return false;
+        return copy;
+    }
+
+    private boolean isInBounds(int x, int y) {
+        return (x >= 0 && x < boardSize && y >= 0 && y < boardSize);
+    }
+
+    private void exchange(int[][] board, int x1, int y1, int x2, int y2) {
+        if (isInBounds(x1, y1) && isInBounds(x2, y2)) {
+            int temp = board[y1][x1];
+            board[y1][x1] = board[y2][x2];
+            board[y2][x2] = temp;
+        }
     }
 
     public Board twin() {
-        int[][] twinBoard = Arrays.copyOf(board, boardSize);
-        for (int i = 0; i < boardSize; i++) {
-            for (int j = 0; j < boardSize - 1; j++) {
-                if (twinBoard[i][j] != 0 && twinBoard[i][j+1] != 0) {
-                    return new Board(twinBoard);
-                }
-            }
-        }
-        return null;
+        return new Board(twinBoard);
     }
 
     public static void main(String[] args) {
@@ -167,10 +176,13 @@ public class Board {
         Board board1 = new Board(tiles1);
         Board board2 = new Board(tiles2);
         StdOut.println(board1.toString());
-        StdOut.println(board2.toString());
 
         StdOut.println("Are boards equal? " + String.valueOf(board1.equals(board2)));
         
+        StdOut.println("Neighbors");
+        for (Board nextBoard: board1.neighbors()) {
+            StdOut.println(nextBoard.toString());
+        }
 
     }
 }
