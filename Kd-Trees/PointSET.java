@@ -44,7 +44,7 @@ public class PointSET {
         return range;
     }
     public Point2D nearest(Point2D p) {
-        if (rect == null) {
+        if (p == null) {
             throw new NullPointerException("Null Argument");
         }
         Point2D nearest = null;
