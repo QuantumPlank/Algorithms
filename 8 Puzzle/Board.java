@@ -34,9 +34,7 @@ public class Board {
         for (int i = 0; i < boardSize; i++) {
             for (int j = 0; j < boardSize - 1; j++) {
                 if (twinBoard[i][j] != 0 && twinBoard[i][j+1] != 0) {
-                    int temp = twinBoard[i][j+1];
-                    twinBoard[i][j+1] = twinBoard[i][j];
-                    twinBoard[i][j] = temp;
+                    exchange(twinBoard, j, i, j+1, i);
                 }
             }
         }
